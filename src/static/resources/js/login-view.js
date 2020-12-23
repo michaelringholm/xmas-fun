@@ -5,13 +5,13 @@ $(function() {
 	$("#btnCreateLogin").click(function() {loginView.createLogin();});	
     $("#btnLogin").click(function() {loginView.login();});
 
-    $(".commandButton").click(function() { loginView.buttonPushed(); });
+    $(".commandButton").click(function(e, t) { loginView.buttonPushed(e,t); });
 });
 
 function LoginView() {
     var _this = this;
     var maxHeroes = 3;
-    var heroView = new HeroView();
+    //var heroView = new HeroView();
     var welcomeMusic = {};
     const cardsEnum = {
         DEER: 0,
@@ -28,12 +28,77 @@ function LoginView() {
         XMAS_TREE: 11
     };   
 
-    this.buttonPushed = function(event) {
-        //var action = event.target.attr("data-action");
-        _this.playRound();
-    }; 
+    this.buttonPushed = function(e,t) {
+        var action = $(e.currentTarget).attr("data-action");
+        if(action == "playRound") { _this.drawPlayScreen(); _this.playRound(); }
+        if(action == "showRewards") _this.showRewards();
+        if(action == "showHighScore") _this.showHighScore();
+    };
 
-    this.changeCard = function(cardIndex, cardType) {
+    this.showHighScore = function() {
+        logDebug("Showing highscore!");
+        
+        $(".function").hide();
+        $(".overlay").hide();
+        $("#highScoreContainer").show();
+        $("#bottomToolbar").show();
+        
+        $("#highScoreItems").empty();
+        var evenRow = true;
+        for(var i=0;i<26;i++) {
+            var newItem = $("#highscoreItemTemplate").clone();
+            newItem.removeClass("template");
+            newItem.removeAttr("id");
+            if(evenRow) newItem.addClass("evenRow"); else newItem.addClass("oddRow"); evenRow=!evenRow; 
+            $("#highScoreItems").append(newItem);
+        }
+    };
+
+    this.getRewardAmount = function(cardType) {
+        if(cardType == cardsEnum.DEER) return "1500/300/70";
+        if(cardType == cardsEnum.SANTA) return "500/300/100";
+        if(cardType == cardsEnum.CANDY_CANE) return "150/90/30";
+        if(cardType == cardsEnum.GIFT) return "100/100/100";
+        if(cardType == cardsEnum.GRINCH) return "100/100/100";
+        if(cardType == cardsEnum.BONBON) return "100/100/100";
+        if(cardType == cardsEnum.LOLLIPOP) return "100/100/100";
+        if(cardType == cardsEnum.ANGEL) return "100/100/100";
+        if(cardType == cardsEnum.GINGERBREAD_MAN) return "100/100/100";
+        if(cardType == cardsEnum.XMAS_HAT) return "100/100/100";
+        if(cardType == cardsEnum.NUT_CRACKER) return "100/100/100";
+        if(cardType == cardsEnum.XMAS_TREE) return "100/100/100";
+        return "-/-/-";
+    };
+
+    this.getRewardSpecial = function(cardType) {
+        return "N/A";
+    };    
+
+    this.showRewards = function() {
+        logDebug("Showing rewards!");
+        
+        $(".function").hide();
+        $(".overlay").hide();
+        $("#rewardsContainer").show();
+        $("#bottomToolbar").show();
+        
+        $("#rewardItems").empty();
+        var evenRow = true;
+        for(var cardType=0;cardType<12;cardType++) {
+            var newItem = $("#rewardItemTemplate").clone();
+            newItem.removeClass("template");
+            newItem.removeAttr("id");
+            //if(evenRow) newItem.addClass("evenRow"); else newItem.addClass("oddRow"); evenRow=!evenRow;            
+            var imgUrl = _this.getImageUrl(cardType);
+            newItem.find("img").attr("src", imgUrl);
+            newItem.find(".rewardAmount").html(_this.getRewardAmount(cardType));
+            newItem.find(".rewardSpecial").html(_this.getRewardSpecial(cardType));
+
+            $("#rewardItems").append(newItem);
+        }
+    };
+
+    this.getImageUrl = function(cardType) {
         var imgFileName = "deer.jpg";
         if(cardType == cardsEnum.DEER) imgFileName = "deer.jpg";
         if(cardType == cardsEnum.SANTA) imgFileName = "santa.jpg";
@@ -47,8 +112,12 @@ function LoginView() {
         if(cardType == cardsEnum.XMAS_HAT) imgFileName = "xmas-hat.jpg";
         if(cardType == cardsEnum.NUT_CRACKER) imgFileName = "nut-cracker.jpg";
         if(cardType == cardsEnum.XMAS_TREE) imgFileName = "xmas-tree.jpg";
+        return "./resources/images/xmas/" + imgFileName;
+    };
 
-        $(".cards .card:nth(" + cardIndex + ") img").attr("src", "./resources/images/xmas/" + imgFileName);
+    this.changeCard = function(cardIndex, cardType) {
+        var imgUrl = _this.getImageUrl(cardType);
+        $(".cards .card:nth(" + cardIndex + ") img").attr("src", imgUrl);
     };
 
     this.playRoundSuccess = function(response) {        
@@ -56,7 +125,9 @@ function LoginView() {
         _this.changeCard(0, data.card1);
         _this.changeCard(1, data.card2);
         _this.changeCard(2, data.card3);
-        data.score;
+
+        $("#score").html(data.score);
+        $("#score").animate("flash");
         $("#totalScore").html(data.totalScore);
         $("#turnsUsed").html(data.turnsUsed + "/" + data.maxTurns);
     };
@@ -65,7 +136,7 @@ function LoginView() {
     };
 
     this.playRound = function() {
-        welcomeMusic = soundPlayer.playSound("./resources/sounds/welcome.wav");
+        welcomeMusic = soundPlayer.playSound("./resources/sounds/mix-deck.wav");
         var accessToken = getCookie("accessToken");
         var userGuid = getCookie("userGuid");
         var data = { userName:$("#login").val(), accessToken: accessToken, userGuid: userGuid};
@@ -90,7 +161,7 @@ function LoginView() {
     };
     
     this.login = function() {
-        welcomeMusic = soundPlayer.playSound("./resources/sounds/welcome.wav");
+        welcomeMusic = soundPlayer.playSound("./resources/sounds/merry-christmas-santa.mp3");
         var clientLogin = { userName:$("#login").val(), password:$("#password").val() };
         //callMethod("http://" + hostIp + ":" + hostPort, "login", clientLogin, loginSuccess, loginFailed);
         post("https://x45nyh9mub.execute-api.eu-north-1.amazonaws.com/DEV/xmas-fun-user-login", clientLogin, loginSuccess, loginFailed);
@@ -116,24 +187,27 @@ function LoginView() {
         $(".cards").append(emptyCard);
     };
 
-    var loginSuccess = function(responseData) {
-        logDebug("login OK!");
-        logDebug(JSON.stringify(responseData));
-        
+    this.drawPlayScreen = function() {
         $(".function").hide();
         $(".overlay").hide();
         $("#cardContainer").show();
         $("#bottomToolbar").show();
         $("#topToolbar").show();
-        
-        //document.cookie = "accessToken=" +data.accessToken + ";userGuid=" + "data.userGuid";
-        setCookie("accessToken", responseData.data.accessToken, 1);
-        setCookie("userGuid", responseData.data.userGuid, 1);
-        addEmptyCard();
-        addEmptyCard();
-        addEmptyCard();
         //var card = drawCards();
         //$(".cards").append(card);
+    };
+
+    var loginSuccess = function(responseData) {
+        logDebug("login OK!");
+        logDebug(JSON.stringify(responseData));
+        setCookie("accessToken", responseData.data.accessToken, 1);
+        setCookie("userGuid", responseData.data.userGuid, 1);
+
+        addEmptyCard();
+        addEmptyCard();
+        addEmptyCard();
+
+        _this.drawPlayScreen();
     };
     
     var loginFailed = function(errorMsg) {
