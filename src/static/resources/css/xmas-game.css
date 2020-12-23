@@ -215,7 +215,7 @@ select {
     background-color: rgb(204, 202, 202);
 }
 .oddRow {
-    background-color: rgb(133, 133, 133);
+    background-color: rgb(213 66 66 / 54%)
 }
 
 .rewardImage {
@@ -227,5 +227,13 @@ select {
 }
 
 .rewardItem {
+	height: 54px; line-height: 54px;
+}
+
+#highScoreItems {
+	height: 40px; line-height: 40px;
+}
+
+.highScoreItem {
 	height: 54px; line-height: 54px;
 }

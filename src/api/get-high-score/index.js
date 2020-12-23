@@ -1,6 +1,5 @@
 const AWS = require("aws-sdk");
 const UUID = require('uuid');
-const MAX_TURNS = 10;
 
 // Callback is (error, response)
 exports.handler = function(event, context, callback) {
@@ -13,11 +12,14 @@ exports.handler = function(event, context, callback) {
     }
     console.log("method="+method);
 
+    /*ATV.validateAccessToken(userInfo.userName, userInfo.accessToken, function(valid, reason) {
+        if(!valid) respondError(401, reason, callback);
+    });*/
+
     var ddb = new AWS.DynamoDB({apiVersion: '2012-08-10'});
-    var login = JSON.parse(event.body);
-    
-    var params = {
-      TableName: 'xmas-fun-login',
+    //var login = JSON.parse(event.body);    
+    /*var params = {
+      TableName: 'xmas-fun-high-score',
       Key: {
         'userName': {S: login.userName}
       },
@@ -35,12 +37,7 @@ exports.handler = function(event, context, callback) {
             else {
                 if(userData.Item.password.S == login.password) {
                     console.log("Password accepted");
-                    updateToken(login, userData.Item.userGuid.S, ddb, function() {
-                        getUserScore(userData.Item.userGuid.S, function(data) {
-                            data.maxTurns = MAX_TURNS;
-                            respondOK(data, callback);
-                        });
-                    });
+                    updateToken(login, userData.Item.userGuid.S, ddb, callback);
                 }
                 else {
                     console.error("Wrong password, was [" + login.password + "] exptected [" + userData.Item.password.S + "]");
@@ -48,56 +45,29 @@ exports.handler = function(event, context, callback) {
                 }
             }
        }
-    });
-};
+    });*/
 
-function updateToken(login, userGuid, ddb, callback) {
-    var newToken = UUID.v4();
     var params = {
-        TableName: 'xmas-fun-login',
-        Item: {
-          'userName': {S: login.userName},
-          'userGuid': {S: userGuid},
-          'password': {S: login.password},
-          'accessToken': {S: newToken}
-        },
-        ReturnConsumedCapacity: "TOTAL", 
-        //ProjectionExpression: 'ATTRIBUTE_NAME'
-    };    
-    ddb.putItem(params, function(err, userData) {
-        if (err) { console.log(err); respondError(500, err, callback); }        
-        console.log("New token generated");
-        respondOK({ "accessToken": newToken, "userGuid": userGuid }, callback);     
-    });    
-}
-
-function getUserScore(userGuid, callback) {
-    //AWS.config.update({region: 'eu-central-1'});
-    var ddb = new AWS.DynamoDB({apiVersion: '2012-08-10'});
-    
-    var params = {
-      TableName: 'xmas-fun-score',
-      Key: {
-        'userGuid': {S: userGuid}
-      },
-      //ProjectionExpression: 'ATTRIBUTE_NAME'
+        TableName: 'xmas-fun-high-score'
     };
-    
-    ddb.getItem(params, function(err, userData) {
-       if (err) { console.error(err); throw err; }
-       else {
-            if(userData == null || userData.Item == null || userData.Item.score == null)
-                callback({}); // First round no data yet
-            else
-                callback(userData.Item);
-       }
+      
+    ddb.scan(params, function(err, data) {
+        if (err) { console.log(err); respondError(500, err, callback); }
+        else {
+            respondOK(data.Items, callback);
+          //console.log("Success", data.Items);
+          /*data.Items.forEach(function(element, index, array) {
+            console.log(element.Title.S + " (" + element.Subtitle.S + ")");
+          });*/
+        }
     });
-}
+
+};
 
 function respondOK(data, callback) {
     const response = {
         statusCode: 200,
-        body: JSON.stringify({ response: 'Login completed', data: data }),
+        body: JSON.stringify({ response: 'Got high score', data: data }),
         headers: {
             'Content-Type': 'application/json',
             'Access-Control-Allow-Origin' : "*", // Required for CORS support to work

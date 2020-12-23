@@ -2,7 +2,7 @@ const AWS = require("aws-sdk");
 const UUID = require('uuid');
 const ATV = require('atv');
 
-const maxTurns = 200;
+const maxTurns = 10;
 const deckSize = 12;
 // Callback is (error, response)
 exports.handler = function(event, context, callback) {
@@ -19,11 +19,9 @@ exports.handler = function(event, context, callback) {
     var userInfo = JSON.parse(event.body);
     ATV.validateAccessToken(userInfo.userName, userInfo.accessToken, function(valid, reason) {
         if(!valid) respondError(401, reason, callback);
-        console.log("step1");
         var round = playRound(userInfo, function(round) {
-            console.log("step2");
+            if(round.turnsUsed == maxTurns-1) insertHighScore(userInfo, round);
             if(round.turnsUsed < maxTurns) {
-                console.log("step3");
                 var params = {
                     TableName: 'xmas-fun-score',
                     Key: { "userGuid" : userInfo.userGuid },
@@ -39,15 +37,36 @@ exports.handler = function(event, context, callback) {
                 
                 var documentClient = new AWS.DynamoDB.DocumentClient();          
                 documentClient.update(params, function(err, data) {
-                    console.log("step4");
                     if (err) { console.log(err); respondError(500, err, callback); }
-                    else {  console.log(data); respondOK(round, callback); }
+                    else {  round.turnsUsed++; console.log(data); respondOK(round, callback); }
                 });
             }
             else
                 respondOK(round, callback);           
         });    
     });
+};
+
+function insertHighScore(userInfo, round) {
+    var ddb = new AWS.DynamoDB({apiVersion: '2012-08-10'});
+    console.log("Inside insertHighScore()");
+    console.log("totalScore=" + round.totalScore);
+    console.log(JSON.stringify(round));
+    var scoreGuid = UUID.v4();
+    var params = {
+        TableName: 'xmas-fun-high-score',
+        Item: {
+          'scoreGuid': {S: scoreGuid},
+          'userGuid': {S: userInfo.userGuid},
+          'score': {N: round.totalScore.toString()},
+          'userName': {S: userInfo.userName}
+        },
+        ReturnConsumedCapacity: "TOTAL", 
+        //ProjectionExpression: 'ATTRIBUTE_NAME'
+    };    
+    ddb.putItem(params, function(err, userData) {
+        if (err) { console.log(err); }        
+    }); 
 };
 
 function playRound(userInfo, callback) {

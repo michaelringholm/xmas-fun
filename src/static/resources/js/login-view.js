@@ -35,23 +35,37 @@ function LoginView() {
         if(action == "showHighScore") _this.showHighScore();
     };
 
-    this.showHighScore = function() {
-        logDebug("Showing highscore!");
-        
+    this.showHighScoreSuccess = function(responseData) {
+        var data = responseData.data;
         $(".function").hide();
         $(".overlay").hide();
         $("#highScoreContainer").show();
         $("#bottomToolbar").show();
-        
+
         $("#highScoreItems").empty();
         var evenRow = true;
-        for(var i=0;i<26;i++) {
+        for(var i=0;i<data.length;i++) {
             var newItem = $("#highscoreItemTemplate").clone();
             newItem.removeClass("template");
             newItem.removeAttr("id");
-            if(evenRow) newItem.addClass("evenRow"); else newItem.addClass("oddRow"); evenRow=!evenRow; 
+            newItem.find(".highScoreScore").html(data[i].score.N);
+            newItem.find(".highScoreName").html(data[i].userName.S);
+            //if(evenRow) newItem.addClass("evenRow"); else newItem.addClass("oddRow"); evenRow=!evenRow; 
             $("#highScoreItems").append(newItem);
         }
+    };
+
+    this.showHighSshowHighScoreFailedcoreSuccess = function() {
+
+    };
+
+    this.showHighScore = function() {
+        logDebug("Showing highscore!");
+
+        var accessToken = getCookie("accessToken");
+        var userGuid = getCookie("userGuid");
+        var data = { userName:$("#login").val(), accessToken: accessToken, userGuid: userGuid};
+        post("https://tt6ew5uusi.execute-api.eu-north-1.amazonaws.com/DEV/xmas-fun-get-high-score", data, _this.showHighScoreSuccess, _this.showHighScoreFailed);
     };
 
     this.getRewardAmount = function(cardType) {
@@ -125,22 +139,32 @@ function LoginView() {
         _this.changeCard(0, data.card1);
         _this.changeCard(1, data.card2);
         _this.changeCard(2, data.card3);
-
+                
         $("#score").html(data.score);
         $("#score").animate("flash");
         $("#totalScore").html(data.totalScore);
         $("#turnsUsed").html(data.turnsUsed + "/" + data.maxTurns);
+        $("#turnsUsed").attr("data-turns-used", data.turnsUsed);
+        $("#turnsUsed").attr("data-max-turns", data.maxTurns);
     };
 
     this.playRoundFailed = function(data) {
     };
 
     this.playRound = function() {
-        welcomeMusic = soundPlayer.playSound("./resources/sounds/mix-deck.wav");
-        var accessToken = getCookie("accessToken");
-        var userGuid = getCookie("userGuid");
-        var data = { userName:$("#login").val(), accessToken: accessToken, userGuid: userGuid};
-        post("https://xg77iuziq8.execute-api.eu-north-1.amazonaws.com/DEV/xmas-fun-play-round", data, _this.playRoundSuccess, _this.playRoundFailed);
+        var turnsUsed = parseInt($("#turnsUsed").attr("data-turns-used"));
+        var maxTurns = parseInt($("#turnsUsed").attr("data-max-turns"));
+
+        if(turnsUsed < maxTurns) {
+            welcomeMusic = soundPlayer.playSound("./resources/sounds/mix-deck.wav");
+            var accessToken = getCookie("accessToken");
+            var userGuid = getCookie("userGuid");
+            var data = { userName:$("#login").val(), accessToken: accessToken, userGuid: userGuid};
+            post("https://xg77iuziq8.execute-api.eu-north-1.amazonaws.com/DEV/xmas-fun-play-round", data, _this.playRoundSuccess, _this.playRoundFailed);
+        }
+        else {
+            log.debug("No turns left, sorry!");
+        }
     };
 
     this.createLogin = function() {

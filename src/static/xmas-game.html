@@ -42,20 +42,18 @@
 	</div>
 
 	
-	<div id="highScoreContainer" class="function" style="display:none; height: 48rem; width:70rem; top: 1rem;">		
-		<div style="margin-top: 4px; margin-left: 10px;">
-            <div class="row headerRow">
-                <div class="col-sm-7">Name</div>
+	<div id="highScoreContainer" class="function" style="display:none; height: 56rem; width:70rem; top: 1rem;">		
+		<div style="margin-top: 4px; ">
+            <div class="row headerRow" style="margin-left: 2px; margin-right: 2px; border-radius: 4px;">
+                <div class="col-sm-9">Name</div>
                 <div class="col-sm-3">Score</div>
-                <div class="col-sm-2">Date</div>
 			</div>
 			<div id="highScoreItems"></div>
 		</div>
 		<!-- Templates -->
-        <div id="highscoreItemTemplate" class="row template highscoreItem">
-            <div class="col-sm-7">[Name]</div>
-            <div class="col-sm-3">[Score]</div>
-            <div class="col-sm-2">[Date]</div>
+        <div id="highscoreItemTemplate" class="row template highscoreItem" style="margin-left: 2px; margin-right: 2px; height: 4rem; line-height: 4rem;">
+            <div class="col-sm-9 highScoreName" style="font-size: 4rem;">[Name]</div>
+            <div class="col-sm-3 highScoreScore" style="font-size: 4rem;">[Score]</div>
         </div>
 	</div>
 
@@ -123,8 +121,7 @@
 
 	<div id="topToolbar" class="function topToolbar container-fluid">
 		<div class="row">
-			<div class="col"></div>
-			<div class="col-md-auto">
+			<div class="col">
 				<div class="row align-items-center" style="height: 10rem; line-height: 10rem;">
 					<div class="col-sm-4">
 						<div id="score" style="font-size: 7rem">0</div>
@@ -133,7 +130,7 @@
 						<div id="totalScore" style="font-size: 7rem">0</div>
 					</div>
 					<div class="col-sm-4">
-						<div id="turnsUsed" style="font-size: 7rem">0/0</div>
+						<div data-turns-used="0" data-max-turns="0" id="turnsUsed" style="font-size: 7rem">0/0</div>
 					</div>
 				</div>
 				<div class="row align-items-center" style="height: 2rem; line-height: 2rem; margin-top:-2rem;">
@@ -148,7 +145,6 @@
 					</div>
 				</div>				
 			</div>
-			<div class="col"></div>
 		</div>
 	</div>	
 	
