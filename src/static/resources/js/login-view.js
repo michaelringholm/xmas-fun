@@ -5,7 +5,7 @@ $(function() {
 	$("#btnCreateLogin").click(function() {loginView.createLogin();});	
     $("#btnLogin").click(function() {loginView.login();});
 
-    $(".commandButton").click(function(e, t) { loginView.buttonPushed(e,t); });
+    $(".commandButton").click(function(e, t) { loginView.buttonPushed(e); });
 });
 
 function LoginView() {
@@ -28,9 +28,9 @@ function LoginView() {
         XMAS_TREE: 11
     };   
 
-    this.buttonPushed = function(e,t) {
+    this.buttonPushed = function(e) {
         var action = $(e.currentTarget).attr("data-action");
-        if(action == "playRound") { _this.drawPlayScreen(); _this.playRound(); }
+        if(action == "playRound") { _this.drawPlayScreen(); _this.playRound(e.currentTarget); }
         if(action == "showRewards") _this.showRewards();
         if(action == "showHighScore") _this.showHighScore();
     };
@@ -70,21 +70,24 @@ function LoginView() {
 
     this.getRewardAmount = function(cardType) {
         if(cardType == cardsEnum.DEER) return "1500/300/70";
-        if(cardType == cardsEnum.SANTA) return "500/300/100";
+        if(cardType == cardsEnum.SANTA) return "500/-/-";
         if(cardType == cardsEnum.CANDY_CANE) return "150/90/30";
-        if(cardType == cardsEnum.GIFT) return "100/100/100";
-        if(cardType == cardsEnum.GRINCH) return "100/100/100";
-        if(cardType == cardsEnum.BONBON) return "100/100/100";
-        if(cardType == cardsEnum.LOLLIPOP) return "100/100/100";
-        if(cardType == cardsEnum.ANGEL) return "100/100/100";
-        if(cardType == cardsEnum.GINGERBREAD_MAN) return "100/100/100";
-        if(cardType == cardsEnum.XMAS_HAT) return "100/100/100";
-        if(cardType == cardsEnum.NUT_CRACKER) return "100/100/100";
-        if(cardType == cardsEnum.XMAS_TREE) return "100/100/100";
+        if(cardType == cardsEnum.GIFT) return "300/180/60";
+        if(cardType == cardsEnum.GRINCH) return "-180/-120/-60";
+        if(cardType == cardsEnum.BONBON) return "100/-/-";
+        if(cardType == cardsEnum.LOLLIPOP) return "125/75/25";
+        if(cardType == cardsEnum.ANGEL) return "30%/20%/10%";
+        if(cardType == cardsEnum.GINGERBREAD_MAN) return "200/-/-";
+        if(cardType == cardsEnum.XMAS_HAT) return "250/-/-";
+        if(cardType == cardsEnum.NUT_CRACKER) return "-30%/-20%/-10%";
+        if(cardType == cardsEnum.XMAS_TREE) return "360/215/-";
         return "-/-/-";
     };
 
     this.getRewardSpecial = function(cardType) {
+        if(cardType == cardsEnum.GIFT) return "Extra turn";
+        if(cardType == cardsEnum.ANGEL) return "Gives score in %";
+        if(cardType == cardsEnum.NUT_CRACKER) return "Steals score in %";
         return "N/A";
     };    
 
@@ -141,42 +144,57 @@ function LoginView() {
         _this.changeCard(2, data.card3);
                 
         $("#score").html(data.score);
-        $("#score").animate("flash");
         $("#totalScore").html(data.totalScore);
         $("#turnsUsed").html(data.turnsUsed + "/" + data.maxTurns);
         $("#turnsUsed").attr("data-turns-used", data.turnsUsed);
         $("#turnsUsed").attr("data-max-turns", data.maxTurns);
+        if(data.score != 0) {
+            $("#score").effect("pulsate", 1500);
+            $("#totalScore").effect("pulsate", 1500);
+        }
+        if(data.score > 0) soundPlayer.playSound("./resources/sounds/success-bell.wav");
+        if(data.score > 100) soundPlayer.playSound("./resources/sounds/merry-christmas-santa.mp3");
+        if(data.score < 0) soundPlayer.playSound("./resources/sounds/loss.wav");
+        if(data.turnsUsed < data.maxTurns) $(".commandButton[data-action=playRound]").addClass("active");
+        else {
+            $("#gameOverTextOverlay").show();
+            soundPlayer.playSound("./resources/sounds/merry-christmas-ho-ho-ho.mp3");
+        } 
     };
 
     this.playRoundFailed = function(data) {
+        $(".commandButton[data-action=playRound]").addClass("active");
     };
 
     this.playRound = function() {
         var turnsUsed = parseInt($("#turnsUsed").attr("data-turns-used"));
         var maxTurns = parseInt($("#turnsUsed").attr("data-max-turns"));
 
-        if(turnsUsed < maxTurns) {
-            welcomeMusic = soundPlayer.playSound("./resources/sounds/mix-deck.wav");
-            var accessToken = getCookie("accessToken");
-            var userGuid = getCookie("userGuid");
-            var data = { userName:$("#login").val(), accessToken: accessToken, userGuid: userGuid};
-            post("https://xg77iuziq8.execute-api.eu-north-1.amazonaws.com/DEV/xmas-fun-play-round", data, _this.playRoundSuccess, _this.playRoundFailed);
+        if(turnsUsed < maxTurns ) {
+            if($(".commandButton[data-action=playRound]").hasClass("active")) {
+                $(".commandButton[data-action=playRound]").removeClass("active");
+                soundPlayer.playSound("./resources/sounds/mix-deck.wav");
+                var accessToken = getCookie("accessToken");
+                var userGuid = getCookie("userGuid");
+                var data = { userName:$("#login").val(), accessToken: accessToken, userGuid: userGuid};
+                post("https://xg77iuziq8.execute-api.eu-north-1.amazonaws.com/DEV/xmas-fun-play-round", data, _this.playRoundSuccess, _this.playRoundFailed);
+            }
         }
         else {
-            log.debug("No turns left, sorry!");
+            logDebug("No turns left, sorry!");
         }
     };
 
     this.createLogin = function() {
-        var newClientLogin = {name:$("#newLogin").val(), password:$("#newPassword").val(), repeatedPassword:$("#newRepeatedPassword").val()};
-        post("xmas-fun-create-login", _this.newClientLogin, _this.createLoginSuccess, _this.createLoginFailed);
+        var newClientLogin = {userName:$("#newLogin").val(), password:$("#newPassword").val(), repeatedPassword:$("#newRepeatedPassword").val()};
+        post("https://xgmawj42y0.execute-api.eu-north-1.amazonaws.com/DEV/xmas-fun-create-login", newClientLogin, _this.createLoginSuccess, _this.createLoginFailed);
     };
     
     this.createLoginSuccess = function(data) {
         logInfo("create login OK!");
         logInfo(JSON.stringify(data));
         $("#statusMessage").html("");
-        drawLoginScreen();
+        _this.drawLoginScreen();
     };
     
     this.createLoginFailed = function(errorMsg) {
@@ -185,7 +203,7 @@ function LoginView() {
     };
     
     this.login = function() {
-        welcomeMusic = soundPlayer.playSound("./resources/sounds/merry-christmas-santa.mp3");
+        welcomeMusic = soundPlayer.playSound("./resources/sounds/intro.mp3");
         var clientLogin = { userName:$("#login").val(), password:$("#password").val() };
         //callMethod("http://" + hostIp + ":" + hostPort, "login", clientLogin, loginSuccess, loginFailed);
         post("https://x45nyh9mub.execute-api.eu-north-1.amazonaws.com/DEV/xmas-fun-user-login", clientLogin, loginSuccess, loginFailed);
@@ -219,6 +237,11 @@ function LoginView() {
         $("#topToolbar").show();
         //var card = drawCards();
         //$(".cards").append(card);
+        if(parseInt($("#turnsUsed").attr("data-turns-used")) == parseInt($("#turnsUsed").attr("data-max-turns"))) {
+            $("#gameOverTextOverlay").show();
+            $(".commandButton[data-action=playRound]").removeClass("active");
+            soundPlayer.playSound("./resources/sounds/merry-christmas-ho-ho-ho.mp3");
+        }
     };
 
     var loginSuccess = function(responseData) {
@@ -226,7 +249,13 @@ function LoginView() {
         logDebug(JSON.stringify(responseData));
         setCookie("accessToken", responseData.data.accessToken, 1);
         setCookie("userGuid", responseData.data.userGuid, 1);
-
+        
+        $("#score").html("-");
+        $("#totalScore").html(responseData.data.score.N);
+        $("#turnsUsed").html(responseData.data.turnsUsed.N + "/" + responseData.data.maxTurns);
+        $("#turnsUsed").attr("data-turns-used", responseData.data.turnsUsed.N);
+        $("#turnsUsed").attr("data-max-turns", responseData.data.maxTurns);
+        
         addEmptyCard();
         addEmptyCard();
         addEmptyCard();
@@ -246,7 +275,7 @@ function LoginView() {
         $(canvasLayer1).hide();
         $("#loginContainer").show();
         
-        $("#container").css("background-image", "url('./resources/images/login-background.jpg')"); 
+        $("#container").css("background-image", "url('./resources/images/xmas/login-background.jpg')"); 
     };
     
     this.drawCreateLoginScreen = function() {

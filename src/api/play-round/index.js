@@ -20,7 +20,6 @@ exports.handler = function(event, context, callback) {
     ATV.validateAccessToken(userInfo.userName, userInfo.accessToken, function(valid, reason) {
         if(!valid) respondError(401, reason, callback);
         var round = playRound(userInfo, function(round) {
-            if(round.turnsUsed == maxTurns-1) insertHighScore(userInfo, round);
             if(round.turnsUsed < maxTurns) {
                 var params = {
                     TableName: 'xmas-fun-score',
@@ -38,7 +37,15 @@ exports.handler = function(event, context, callback) {
                 var documentClient = new AWS.DynamoDB.DocumentClient();          
                 documentClient.update(params, function(err, data) {
                     if (err) { console.log(err); respondError(500, err, callback); }
-                    else {  round.turnsUsed++; console.log(data); respondOK(round, callback); }
+                    else {  
+                        if(round.turnsUsed == maxTurns-1) { 
+                            insertHighScore(userInfo, round, (err) => {
+                                if (err) { console.log(err); respondError(500, err, callback); }
+                                else { ++round.turnsUsed; console.log(data); respondOK(round, callback) };
+                            });
+                        }
+                        else { ++round.turnsUsed; console.log(data); respondOK(round, callback); }                     
+                    }
                 });
             }
             else
@@ -47,7 +54,7 @@ exports.handler = function(event, context, callback) {
     });
 };
 
-function insertHighScore(userInfo, round) {
+function insertHighScore(userInfo, round, callback) {
     var ddb = new AWS.DynamoDB({apiVersion: '2012-08-10'});
     console.log("Inside insertHighScore()");
     console.log("totalScore=" + round.totalScore);
@@ -65,7 +72,8 @@ function insertHighScore(userInfo, round) {
         //ProjectionExpression: 'ATTRIBUTE_NAME'
     };    
     ddb.putItem(params, function(err, userData) {
-        if (err) { console.log(err); }        
+        if (err) { console.log(err); callback(err); }
+        else callback(null);
     }); 
 };
 
@@ -91,8 +99,8 @@ function calculateRoundScore(round, oldScore) {
     if(round.card1 == cardsEnum.DEER && round.card2 == cardsEnum.DEER) return 300;
     if(round.card1 == cardsEnum.DEER) return 70;
     if(round.card1 == cardsEnum.SANTA && round.card2 == cardsEnum.SANTA && round.card3 == cardsEnum.SANTA) return 500;
-    if(round.card1 == cardsEnum.SANTA && round.card2 == cardsEnum.SANTA) return 300;
-    if(round.card1 == cardsEnum.SANTA) return 100;
+    //if(round.card1 == cardsEnum.SANTA && round.card2 == cardsEnum.SANTA) return 300;
+    //if(round.card1 == cardsEnum.SANTA) return 100;
     if(round.card1 == cardsEnum.CANDY_CANE && round.card2 == cardsEnum.CANDY_CANE && round.card3 == cardsEnum.CANDY_CANE) return 150;
     if(round.card1 == cardsEnum.CANDY_CANE && round.card2 == cardsEnum.CANDY_CANE) return 90;
     if(round.card1 == cardsEnum.CANDY_CANE) return 30;
@@ -103,8 +111,8 @@ function calculateRoundScore(round, oldScore) {
     if(round.card1 == cardsEnum.GRINCH && round.card2 == cardsEnum.GRINCH) return -120;
     if(round.card1 == cardsEnum.GRINCH) return -60;
     if(round.card1 == cardsEnum.BONBON && round.card2 == cardsEnum.BONBON && round.card3 == cardsEnum.BONBON) return 100;
-    if(round.card1 == cardsEnum.BONBON && round.card2 == cardsEnum.BONBON) return 60;
-    if(round.card1 == cardsEnum.BONBON) return 20;
+    //if(round.card1 == cardsEnum.BONBON && round.card2 == cardsEnum.BONBON) return 60;
+    //if(round.card1 == cardsEnum.BONBON) return 20;
     if(round.card1 == cardsEnum.LOLLIPOP && round.card2 == cardsEnum.LOLLIPOP && round.card3 == cardsEnum.LOLLIPOP) return 125;
     if(round.card1 == cardsEnum.LOLLIPOP && round.card2 == cardsEnum.LOLLIPOP) return 75;
     if(round.card1 == cardsEnum.LOLLIPOP) return 25;
@@ -112,18 +120,18 @@ function calculateRoundScore(round, oldScore) {
     if(round.card1 == cardsEnum.ANGEL && round.card2 == cardsEnum.ANGEL) return oldScore*0.2;
     if(round.card1 == cardsEnum.ANGEL) return oldScore*0.1;
     if(round.card1 == cardsEnum.GINGERBREAD_MAN && round.card2 == cardsEnum.GINGERBREAD_MAN && round.card3 == cardsEnum.GINGERBREAD_MAN) return 200;
-    if(round.card1 == cardsEnum.GINGERBREAD_MAN && round.card2 == cardsEnum.GINGERBREAD_MAN) return 120;
-    if(round.card1 == cardsEnum.GINGERBREAD_MAN) return 40;
+    //if(round.card1 == cardsEnum.GINGERBREAD_MAN && round.card2 == cardsEnum.GINGERBREAD_MAN) return 120;
+    //if(round.card1 == cardsEnum.GINGERBREAD_MAN) return 40;
     if(round.card1 == cardsEnum.XMAS_HAT && round.card2 == cardsEnum.XMAS_HAT && round.card3 == cardsEnum.XMAS_HAT) return 250;
-    if(round.card1 == cardsEnum.XMAS_HAT && round.card2 == cardsEnum.XMAS_HAT) return 150;
-    if(round.card1 == cardsEnum.XMAS_HAT) return 50;
+    //if(round.card1 == cardsEnum.XMAS_HAT && round.card2 == cardsEnum.XMAS_HAT) return 150;
+    //if(round.card1 == cardsEnum.XMAS_HAT) return 50;
     if(round.card1 == cardsEnum.NUT_CRACKER && round.card2 == cardsEnum.NUT_CRACKER && round.card3 == cardsEnum.NUT_CRACKER) return oldScore*-0.3;
     if(round.card1 == cardsEnum.NUT_CRACKER && round.card2 == cardsEnum.NUT_CRACKER) return oldScore*-0.2;
     if(round.card1 == cardsEnum.NUT_CRACKER) return oldScore*-0.1;
     if(round.card1 == cardsEnum.XMAS_TREE && round.card2 == cardsEnum.XMAS_TREE && round.card3 == cardsEnum.XMAS_TREE) return 360;
     if(round.card1 == cardsEnum.XMAS_TREE && round.card2 == cardsEnum.XMAS_TREE) return 215;
-    if(round.card1 == cardsEnum.XMAS_TREE) return 75;    
-    return getRandomInt(100);
+    //if(round.card1 == cardsEnum.XMAS_TREE) return 75;    
+    return 0;
 }
 
 const cardsEnum = {

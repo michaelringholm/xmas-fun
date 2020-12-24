@@ -35,10 +35,12 @@ exports.handler = function(event, context, callback) {
             else {
                 if(userData.Item.password.S == login.password) {
                     console.log("Password accepted");
-                    updateToken(login, userData.Item.userGuid.S, ddb, function() {
-                        getUserScore(userData.Item.userGuid.S, function(data) {
-                            data.maxTurns = MAX_TURNS;
-                            respondOK(data, callback);
+                    updateToken(login, userData.Item.userGuid.S, ddb, function(tokenData) {
+                        getUserScore(userData.Item.userGuid.S, function(scoreData) {
+                            scoreData.maxTurns = MAX_TURNS;
+                            scoreData.accessToken = tokenData.accessToken;
+                            scoreData.userGuid = tokenData.userGuid;
+                            respondOK(scoreData, callback);
                         });
                     });
                 }
@@ -67,7 +69,7 @@ function updateToken(login, userGuid, ddb, callback) {
     ddb.putItem(params, function(err, userData) {
         if (err) { console.log(err); respondError(500, err, callback); }        
         console.log("New token generated");
-        respondOK({ "accessToken": newToken, "userGuid": userGuid }, callback);     
+        callback({ "accessToken": newToken, "userGuid": userGuid });
     });    
 }
 

@@ -10,7 +10,6 @@
 	<script type="text/javascript" src="./resources/js/lib/jquery-ui.min.js"></script>
 	<script type="text/javascript" src="./resources/js/sound-player.js"></script>
 	<script type="text/javascript" src="./resources/js/html-include.js"></script>		
-	<script type="text/javascript" src="./resources/js/hero-view.js"></script>
 	<script type="text/javascript" src="./resources/js/login-view.js"></script>
 	<script type="text/javascript" src="./resources/js/xmas-game.js"></script>
 </head>
@@ -30,13 +29,13 @@
 		</div>
 	</div>
 	
-	<div id="createLoginContainer" class="function" style="display: none;">
+	<div id="createLoginContainer" class="function" style="height: 160px; top:22rem;display: none;">
 		<div style="margin-top: 10px;; margin-left: 10px;">
-			<div style="margin: 4px;"><div class="label" style="width: 220px;">New login:</div><input id="newLogin" type="text" value="some login"/></div>
-			<div style="margin: 4px;"><div class="label" style="width: 220px;">New Password:</div><input id="newPassword" type="password" value="MyPassword" /></div>
-			<div style="margin: 4px;"><div class="label" style="width: 220px;">Repeated Password:</div><input id="newRepeatedPassword" type="password" value="MyPassword" /></div>
+			<div style="margin: 4px;"><div class="label" style="width: 220px;">New login:</div><input id="newLogin" type="text" value="aa"/></div>
+			<div style="margin: 4px;"><div class="label" style="width: 220px;">New Password:</div><input id="newPassword" type="password" value="bb" /></div>
+			<div style="margin: 4px;"><div class="label" style="width: 220px;">Repeated Password:</div><input id="newRepeatedPassword" type="password" value="bb" /></div>
 
-			<div id="btnCreateLogin" class="btn">Create Login</div>
+			<div id="btnCreateLogin" class="btn" style="background-color: green;">Create Login</div>
 			<div id="statusMessage" class="label"></div>
 		</div>			
 	</div>
@@ -175,6 +174,8 @@
 	</div>
 	
 	<!-- OVERLAYS -->
+	<div id="gameOverTextOverlay" class="function" style="display:none; width: 70rem; height: 16rem; font-size: 8rem; background-color: rgba(182, 10, 10, 0.7); text-align: center; top:0; bottom:0; line-height: 16rem;">Game Over</div>
+
 	<div id="characterScreenOverlay" class="function" style="display:none; width: 560px; height: 108px; font-size: 20px; top: 40px; left: 40px; margin: 0px;"></div>
 	<div id="characterScreen" class="function" style="display:none; width: 860px; height: 698px; font-size: 20px; background-color: transparent;">
 		<div style="position: absolute;left: 0px; top: 0px;" class="heroName"></div>
@@ -203,11 +204,11 @@
 		</div>
 		<div class="row align-items-center justify-content-center" style="margin-top:2rem;">			
 			<div class="col text-center">
-				<img class="img-fluid commandButton" src="./resources/images/items/xp.png">
+				<img class="img-fluid commandButton" src="./resources/images/xmas/deer.jpg">
 				<div  id="xpEarned">10 xp</div>
 			</div>
 			<div class="col text-center">
-				<img class="img-fluid commandButton" src="./resources/images/items/copper-pieces.png">
+				<img class="img-fluid commandButton" src="./resources/images/xmas/deer.jpg">
 				<div id="copperLooted">5 cp</div>
 			</div>
 		</div>
@@ -216,7 +217,7 @@
 		</div>
 		<div id="lootedItems" class="row align-items-center justify-content-center" style="margin-top:1rem; margin-bottom: 3rem;">			
 			<div class="col template lootedItem text-center">
-				<img class="lootedItemImg img-fluid commandButton active" src="./resources/images/items/necklace.png">
+				<img class="lootedItemImg img-fluid commandButton active" src="./resources/images/xmas/deer.jpg">
 				<div class="lootedItemName">Looted Item</div>
 			</div>
 		</div>	
