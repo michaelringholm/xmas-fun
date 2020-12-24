@@ -2,7 +2,7 @@ const AWS = require("aws-sdk");
 const UUID = require('uuid');
 const ATV = require('atv');
 
-const maxTurns = 10;
+const maxTurns = 50;
 const deckSize = 12;
 // Callback is (error, response)
 exports.handler = function(event, context, callback) {

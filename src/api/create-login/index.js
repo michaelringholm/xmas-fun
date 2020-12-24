@@ -1,6 +1,6 @@
 const AWS = require("aws-sdk");
 const UUID = require('uuid');
-const MAX_TURNS = 10;
+const MAX_TURNS = 50;
 
 // Callback is (error, response)
 exports.handler = function(event, context, callback) {
