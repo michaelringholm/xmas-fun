@@ -17,35 +17,6 @@ exports.handler = function(event, context, callback) {
     });*/
 
     var ddb = new AWS.DynamoDB({apiVersion: '2012-08-10'});
-    //var login = JSON.parse(event.body);    
-    /*var params = {
-      TableName: 'xmas-fun-high-score',
-      Key: {
-        'userName': {S: login.userName}
-      },
-      //ProjectionExpression: 'ATTRIBUTE_NAME'
-    };
-    
-    ddb.getItem(params, function(err, userData) {
-       if (err) { console.log(err); respondError(500, err, callback); }
-       else {
-            console.log(JSON.stringify(userData));
-            if(userData == null || userData.Item == null || userData.Item.password == null) {
-                console.error("User [" + login.userName + "] not found");
-                respondError(401, "Invalid login", callback);
-            }
-            else {
-                if(userData.Item.password.S == login.password) {
-                    console.log("Password accepted");
-                    updateToken(login, userData.Item.userGuid.S, ddb, callback);
-                }
-                else {
-                    console.error("Wrong password, was [" + login.password + "] exptected [" + userData.Item.password.S + "]");
-                    respondError(401, "Invalid login", callback);
-                }
-            }
-       }
-    });*/
 
     var params = {
         TableName: 'xmas-fun-high-score'
@@ -54,14 +25,31 @@ exports.handler = function(event, context, callback) {
     ddb.scan(params, function(err, data) {
         if (err) { console.log(err); respondError(500, err, callback); }
         else {
-            respondOK(data.Items, callback);
-          //console.log("Success", data.Items);
-          /*data.Items.forEach(function(element, index, array) {
-            console.log(element.Title.S + " (" + element.Subtitle.S + ")");
-          });*/
+            highScores = sortHighScores(data.Items);
+            respondOK(highScores, callback);
         }
     });
 
+};
+
+function pad(n, width, z) {
+    z = z || '0';
+    n = n + '';
+    return n.length >= width ? n : new Array(width - n.length + 1).join(z) + n;
+}
+
+function sortHighScores(highScoresUnsorted) {
+    var sorted = new Array();
+    for(var i=0;i<highScoresUnsorted.length;i++) {
+        var item = highScoresUnsorted[i];
+        var score = parseInt(item.score.N);
+        if(score < 0) {
+            sorted.push("-"+pad(score*-1,9)+"#"+item.userName.S);
+        }
+        else
+            sorted.push(pad(score,10)+"#"+item.userName.S);
+    }
+    return sorted.sort().reverse();
 };
 
 function respondOK(data, callback) {

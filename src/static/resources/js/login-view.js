@@ -43,13 +43,14 @@ function LoginView() {
         $("#bottomToolbar").show();
 
         $("#highScoreItems").empty();
-        var evenRow = true;
+        var evenRow = true;        
         for(var i=0;i<data.length;i++) {
             var newItem = $("#highscoreItemTemplate").clone();
             newItem.removeClass("template");
             newItem.removeAttr("id");
-            newItem.find(".highScoreScore").html(data[i].score.N);
-            newItem.find(".highScoreName").html(data[i].userName.S);
+            var sections = data[i].split("#");
+            newItem.find(".highScoreScore").html(parseInt(sections[0]));
+            newItem.find(".highScoreName").html(sections[1]);
             //if(evenRow) newItem.addClass("evenRow"); else newItem.addClass("oddRow"); evenRow=!evenRow; 
             $("#highScoreItems").append(newItem);
         }

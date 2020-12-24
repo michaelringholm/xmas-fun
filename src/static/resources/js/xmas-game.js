@@ -28,11 +28,18 @@ $(function() {
 	canvasLayer2.height = canvasHeight;		
   
 	$("#muteSound").click(function() {muteSound()});
+	$("#toggleDebug").click(function() {toggleDebug()});
+	
 	$("#gSessionId").html("gSessionId: N/A");
 });
 
 function muteSound() {
 	soundPlayer.muteAll();
+};
+
+function toggleDebug() {
+	$("#debugInfo").toggle();
+	$("#jsonInfo").toggle();
 };
 
 function printDebug(hero) {
