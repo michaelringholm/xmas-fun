@@ -126,7 +126,7 @@ function LoginView() {
         if(cardType == cardsEnum.BONBON) imgFileName = "bonbon.jpg";
         if(cardType == cardsEnum.LOLLIPOP) imgFileName = "lollipop.jpg";
         if(cardType == cardsEnum.ANGEL) imgFileName = "angel.jpg";
-        if(cardType == cardsEnum.GINGERBREAD_MAN) imgFileName = "gingerbread-man.jpg";
+        if(cardType == cardsEnum.GINGERBREAD_MAN) imgFileName = "gingerbread-man2.png";
         if(cardType == cardsEnum.XMAS_HAT) imgFileName = "xmas-hat.jpg";
         if(cardType == cardsEnum.NUT_CRACKER) imgFileName = "nut-cracker.jpg";
         if(cardType == cardsEnum.XMAS_TREE) imgFileName = "xmas-tree.jpg";
