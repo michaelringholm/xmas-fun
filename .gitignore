@@ -1,2 +1,5 @@
 local
 *.zip
+bin
+package-lock.json
+**/build
